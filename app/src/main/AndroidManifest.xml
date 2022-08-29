@@ -4,7 +4,6 @@
     package="com.wallace.sms_receiver">
 
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
-    <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.READ_SMS" />
 
     <application
@@ -20,9 +19,13 @@
 
         <receiver
             android:name=".SmsBroadcastReceiver"
-            android:exported="true"
-            android:permission="android.permission.BROADCAST_SMS">
+            android:enabled="true"
+            android:exported="false"
+            android:permission="android.permission.BROADCAST_SMS"
+            tools:ignore="Instantiatable">
             <intent-filter android:priority="1000">
+                <category android:name="android.intent.category.DEFAULT" />
+
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>

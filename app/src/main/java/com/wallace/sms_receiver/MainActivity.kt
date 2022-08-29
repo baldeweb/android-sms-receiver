@@ -7,15 +7,17 @@ import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.gms.auth.api.phone.SmsRetriever
+import com.wallace.sms_receiver.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity(), SmsBroadcastReceiverListener {
     private var smsBroadcastReceiver: SmsBroadcastReceiver? = null
+    private lateinit var binding: ActivityMainBinding
+
     private val requestPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { hasPermission ->
         if (hasPermission) {
             startSmsRetriever()
-            registerBroadcastReceiver()
         } else {
             Log.d(TAG, "Permission needed to use SMS")
         }
@@ -23,14 +25,14 @@ class MainActivity : AppCompatActivity(), SmsBroadcastReceiverListener {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         checkSmsPermission()
     }
 
     private fun checkSmsPermission() {
         if (hasSMSPermission()) {
             startSmsRetriever()
-            registerBroadcastReceiver()
         } else {
             requestPermission.launch(RECEIVE_SMS)
         }
@@ -46,6 +48,7 @@ class MainActivity : AppCompatActivity(), SmsBroadcastReceiverListener {
             smsRetriever.startSmsRetriever()
                 .addOnSuccessListener {
                     Log.d(TAG, "LISTENING_SUCCESS")
+                    registerBroadcastReceiver()
                 }
                 .addOnFailureListener {
                     Log.d(TAG, "LISTENING_FAILURE")
@@ -54,12 +57,13 @@ class MainActivity : AppCompatActivity(), SmsBroadcastReceiverListener {
     }
 
     private fun registerBroadcastReceiver() {
-        smsBroadcastReceiver = SmsBroadcastReceiver()
-        val intentFilter = IntentFilter(SmsRetriever.SMS_RETRIEVED_ACTION)
-        registerReceiver(smsBroadcastReceiver, intentFilter, SmsRetriever.SEND_PERMISSION, null)
+        smsBroadcastReceiver = SmsBroadcastReceiver(this)
+        val intentFilter = IntentFilter("android.provider.Telephony.SMS_RECEIVED")
+        registerReceiver(smsBroadcastReceiver, intentFilter)
     }
 
     override fun onSMSCode(code: String) {
-        Log.d(TAG, "SMS_RECEIVED_ACTION >> SMS Code: $code")
+        Log.d(TAG, "SMS_RECEIVED_ACTION >> [onSMSCode]: $code")
+        binding.tvwCode.text = code
     }
 }
